@@ -27,12 +27,19 @@ pipeline {
         }
 
         stage('Push Image') {
-            stage('Run Container') {
-    steps {
-        sh '''
-        docker stop devops-container || true
-        docker rm devops-container || true
-        docker run -d -p 5001:5000 --name devops-container $DOCKER_IMAGE:latest
-        '''
+            steps {
+                sh 'docker push $DOCKER_IMAGE:latest'
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                sh '''
+                docker stop devops-container || true
+                docker rm devops-container || true
+                docker run -d -p 5001:5000 --name devops-container $DOCKER_IMAGE:latest
+                '''
+            }
+        }
     }
 }
