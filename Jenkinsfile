@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "sunnyajy293/devops-app"
+    }
+
     stages {
         stage('Clone') {
             steps {
@@ -8,15 +12,29 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Image') {
             steps {
-                sh 'docker build -t devops-app .'
+                sh 'docker build -t $DOCKER_IMAGE:latest .'
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh 'docker push $DOCKER_IMAGE:latest'
             }
         }
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p 5001:5000 devops-app'
+                sh 'docker run -d -p 5001:5000 $DOCKER_IMAGE:latest'
             }
         }
     }
